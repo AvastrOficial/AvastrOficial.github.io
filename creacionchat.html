@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear nuevo chat - Bsz Messgger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="create-chat-container">
+        <div class="create-chat-header">
+            <h2>Crear nuevo chat</h2>
+        </div>
+        
+        <div class="create-chat-form">
+            <div class="form-group">
+                <label for="chatName">Nombre del chat</label>
+                <input type="text" id="chatName" placeholder="Ingresa un nombre único">
+            </div>
+            
+            <div class="form-group">
+                <label for="chatDescription">Descripción (opcional)</label>
+                <input type="text" id="chatDescription" placeholder="Descripción del chat">
+            </div>
+            
+            <div class="form-group">
+                <label for="chatPrivacy">Privacidad</label>
+                <select id="chatPrivacy">
+                    <option value="public">Público</option>
+                    <option value="private">Privado</option>
+                </select>
+            </div>
+            
+            <div class="form-buttons">
+                <button id="cancelCreateChat">Cancelar</button>
+                <button id="confirmCreateChat">Crear chat</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>
