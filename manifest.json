@@ -3,9 +3,9 @@
   "short_name": "BszMsg",
   "start_url": "/mi-mensaje-pwa/",
   "display": "standalone",
-  "background_color": "#dc143c",
-  "theme_color": "#dc143c",
-  "description": "Aplicación de mensajería offline estilo WhatsApp",
+  "background_color": "#000000",
+  "theme_color": "#ff0000",
+  "description": "Aplicación de mensajería estilo WhatsApp con funcionalidad offline",
   "icons": [
     {
       "src": "icon-192.png",
@@ -17,5 +17,6 @@
       "type": "image/png",
       "sizes": "512x512"
     }
-  ]
+  ],
+  "orientation": "portrait"
 }
