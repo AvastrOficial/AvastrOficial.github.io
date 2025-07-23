@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BSZ Messenger</title>
-<link rel="stylesheet" href="./style.css" />
-  <link rel="manifest" href="./manifest.json" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bsz Messgger</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="./style.css">
+    <meta name="theme-color" content="#dc143c">
 </head>
 <body>
-  <div class="app">
-    <div class="chat-box" id="chatBox"></div>
-    <div class="input-area">
-      <input type="text" id="msgInput" placeholder="Escribe un mensaje..." />
-      <button id="sendBtn">Enviar</button>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Bsz Messgger</h1>
+        </header>
+        
+        <div class="chat-container" id="chatContainer">
+            <!-- Mensajes se cargarán aquí -->
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="usernameInput" placeholder="Ingresa tu nombre" required>
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Escribe un mensaje..." disabled>
+                <button id="sendButton" disabled>Enviar</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-
-<script src="./app.js"></script>
-
+    <script src="./app.js"></script>
 </body>
 </html>
