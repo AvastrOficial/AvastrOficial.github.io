@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bsz-messenger-v1';
+const CACHE_NAME = 'bsz-messenger-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -20,22 +20,16 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }
-        
-        // No hay en caché, intentar la red
         return fetch(event.request).then(
           (response) => {
-            // Verificar si recibimos una respuesta válida
             if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clonar la respuesta
             const responseToCache = response.clone();
-
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
@@ -44,7 +38,6 @@ self.addEventListener('fetch', (event) => {
             return response;
           }
         ).catch(() => {
-          // Si falla la red y es una página, mostrar offline.html
           if (event.request.headers.get('accept').includes('text/html')) {
             return caches.match('/index.html');
           }
