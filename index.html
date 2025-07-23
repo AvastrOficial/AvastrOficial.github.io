@@ -3,13 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detector Bluetooth</title>
-  <link rel="manifest" href="manifest.json">
+  <title>BSZ Messenger</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
-  <h1>Detector Bluetooth</h1>
-  <button id="scanButton">Buscar dispositivos</button>
-  <ul id="deviceList"></ul>
+  <div class="app">
+    <div class="chat-box" id="chatBox"></div>
+    <div class="input-area">
+      <input type="text" id="msgInput" placeholder="Escribe un mensaje..." />
+      <button id="sendBtn">Enviar</button>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
