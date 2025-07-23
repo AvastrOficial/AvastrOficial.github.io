@@ -1,9 +1,10 @@
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('bluetooth-detector').then((cache) => {
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open('chat-static').then(cache => {
       return cache.addAll([
         '/',
         '/index.html',
+        '/style.css',
         '/app.js',
         '/manifest.json'
       ]);
@@ -11,10 +12,10 @@ self.addEventListener('install', (e) => {
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((resp) => {
-      return resp || fetch(e.request);
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(resp => {
+      return resp || fetch(event.request);
     })
   );
 });
