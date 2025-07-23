@@ -1,10 +1,10 @@
 {
-  "name": "Detector Bluetooth",
-  "short_name": "BT Detector",
+  "name": "BSZ Messenger",
+  "short_name": "BSZChat",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "description": "App PWA para detectar dispositivos Bluetooth",
+  "background_color": "#111111",
+  "theme_color": "#25d366",
   "icons": [
     {
       "src": "icon.png",
