@@ -29,7 +29,7 @@ body {
 /* Contenedor principal */
 .app-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: auto;
     height: 95vh;
     background-color: var(--background-dark);
     display: flex;
@@ -417,4 +417,80 @@ body {
     .message {
         max-width: 85%;
     }
+}
+/* Estilos para la página de creación de chat */
+.create-chat-container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--background-light);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+}
+
+.create-chat-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.create-chat-header h2 {
+    color: var(--primary-color);
+}
+
+.create-chat-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-dark);
+    color: var(--text-color);
+    outline: none;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-buttons button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.form-buttons button:first-child {
+    background-color: #555;
+    color: white;
+}
+
+.form-buttons button:last-child {
+    background-color: var(--primary-color);
+    color: #000;
+}
+
+.form-buttons button:hover {
+    opacity: 0.9;
 }
