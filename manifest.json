@@ -1,15 +1,21 @@
 {
-  "name": "BSZ Messenger",
-  "short_name": "BSZChat",
-  "start_url": "/",
+  "name": "Bsz Messgger",
+  "short_name": "BszMsg",
+  "start_url": "/mi-mensaje-pwa/",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#25d366",
+  "background_color": "#dc143c",
+  "theme_color": "#dc143c",
+  "description": "Aplicación de mensajería offline estilo WhatsApp",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ]
 }
