@@ -1,7 +1,13 @@
 // Variables globales
 let currentUser = null;
+let currentChat = 'general';
+let chats = {
+    general: {
+        name: 'Chat General',
+        messages: []
+    }
+};
 const apiUrl = 'https://6878141b31d28a460e1d23cc.mockapi.io/68643bc188359a373e97e75c/UDataB/68643bc188359a373e97e75c/68643bc188359a373e97e75c/68643bc188359a373e97e75c/UserSinRed';
-let messages = [];
 let isOnline = navigator.onLine;
 
 // Elementos del DOM
@@ -9,103 +15,202 @@ const chatContainer = document.getElementById('chatContainer');
 const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
 const usernameInput = document.getElementById('usernameInput');
+const setUsernameBtn = document.getElementById('setUsernameBtn');
+const usernameContainer = document.getElementById('usernameContainer');
+const messageInputContainer = document.getElementById('messageInputContainer');
+const chatList = document.getElementById('chatList');
+const currentUserName = document.getElementById('currentUserName');
+const userStatus = document.getElementById('userStatus');
+const newChatBtn = document.getElementById('newChatBtn');
+const newChatModal = document.getElementById('newChatModal');
+const newChatName = document.getElementById('newChatName');
+const cancelNewChat = document.getElementById('cancelNewChat');
+const confirmNewChat = document.getElementById('confirmNewChat');
+const menuToggle = document.getElementById('menuToggle');
+const chatSidebar = document.getElementById('chatSidebar');
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', initApp);
 sendButton.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-});
-usernameInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && usernameInput.value.trim()) {
-        setUsername();
-    }
-});
-window.addEventListener('online', handleConnectionChange);
-window.addEventListener('offline', handleConnectionChange);
+messageInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+setUsernameBtn.addEventListener('click', setUsername);
+usernameInput.addEventListener('keypress', (e) => e.key === 'Enter' && setUsername());
+newChatBtn.addEventListener('click', () => newChatModal.classList.add('active'));
+cancelNewChat.addEventListener('click', () => newChatModal.classList.remove('active'));
+confirmNewChat.addEventListener('click', createNewChat);
+menuToggle.addEventListener('click', toggleSidebar);
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
 
 // Inicializar la aplicación
 async function initApp() {
-    // Verificar si hay un usuario guardado en caché
-    currentUser = localStorage.getItem('messageUser');
+    // Cargar datos del usuario y chats desde localStorage
+    currentUser = localStorage.getItem('bszMessengerUser');
+    loadChatsFromLocalStorage();
     
     if (currentUser) {
-        usernameInput.style.display = 'none';
-        messageInput.disabled = false;
-        sendButton.disabled = false;
-        loadMessages();
+        setupUserSession();
     } else {
         showNotification('Por favor, ingresa tu nombre para comenzar');
     }
     
-    // Registrar el Service Worker
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
         try {
             await navigator.serviceWorker.register('sw.js');
             console.log('Service Worker registrado');
         } catch (error) {
-            console.error('Error al registrar el Service Worker:', error);
+            console.error('Error al registrar SW:', error);
         }
     }
+    
+    // Cargar mensajes iniciales
+    loadMessages();
+    updateConnectionStatus();
+    renderChatList();
+}
+
+function setupUserSession() {
+    usernameContainer.style.display = 'none';
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+    currentUserName.textContent = currentUser;
+    userStatus.textContent = isOnline ? 'En línea' : 'Offline';
 }
 
 function setUsername() {
     const username = usernameInput.value.trim();
     if (username) {
         currentUser = username;
-        localStorage.setItem('messageUser', username);
-        usernameInput.style.display = 'none';
-        messageInput.disabled = false;
-        sendButton.disabled = false;
+        localStorage.setItem('bszMessengerUser', username);
+        setupUserSession();
         showNotification(`Bienvenido, ${username}!`);
-        loadMessages();
+        
+        // Agregar mensaje de sistema
+        addSystemMessage(`${username} se ha unido al chat`);
     }
+}
+
+function loadChatsFromLocalStorage() {
+    const savedChats = localStorage.getItem('bszMessengerChats');
+    if (savedChats) {
+        chats = JSON.parse(savedChats);
+    }
+}
+
+function saveChatsToLocalStorage() {
+    localStorage.setItem('bszMessengerChats', JSON.stringify(chats));
 }
 
 async function loadMessages() {
     try {
-        // Intentar cargar desde la API primero si hay conexión
         if (isOnline) {
             const response = await fetch(apiUrl);
-            messages = await response.json();
-            localStorage.setItem('cachedMessages', JSON.stringify(messages));
-        } else {
-            // Cargar desde caché si no hay conexión
-            const cachedMessages = localStorage.getItem('cachedMessages');
-            messages = cachedMessages ? JSON.parse(cachedMessages) : [];
-            showNotification('Modo offline - Mostrando mensajes en caché');
+            const apiMessages = await response.json();
+            
+            // Procesar mensajes de la API
+            apiMessages.forEach(msg => {
+                const chatId = msg.chatId || 'general';
+                if (!chats[chatId]) {
+                    chats[chatId] = {
+                        name: msg.chatName || `Chat ${chatId}`,
+                        messages: []
+                    };
+                }
+                
+                // Evitar duplicados
+                if (!chats[chatId].messages.some(m => m.id === msg.id)) {
+                    chats[chatId].messages.push({
+                        id: msg.id,
+                        user: msg.user,
+                        text: msg.text,
+                        time: msg.time || new Date().toISOString()
+                    });
+                }
+            });
+            
+            saveChatsToLocalStorage();
+            showNotification('Mensajes sincronizados');
         }
         
         renderMessages();
     } catch (error) {
         console.error('Error al cargar mensajes:', error);
-        const cachedMessages = localStorage.getItem('cachedMessages');
-        messages = cachedMessages ? JSON.parse(cachedMessages) : [];
         renderMessages();
-        showNotification('Error al cargar mensajes. Mostrando caché local');
+        showNotification('Error al cargar mensajes. Usando caché local');
     }
 }
 
 function renderMessages() {
+    if (!chats[currentChat]) return;
+    
     chatContainer.innerHTML = '';
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message');
-        messageElement.classList.add(msg.user === currentUser ? 'message-sent' : 'message-received');
-        
-        messageElement.innerHTML = `
-            <div class="message-text">${msg.text}</div>
-            <div class="message-info">
-                <span class="message-user">${msg.user}</span>
-                <span class="message-time">${formatTime(msg.time)}</span>
+    
+    // Mostrar mensajes de bienvenida si no hay mensajes
+    if (chats[currentChat].messages.length === 0 && currentChat === 'general') {
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = 'welcome-message';
+        welcomeDiv.innerHTML = `
+            <div class="message left">
+                <div class="username">Sistema</div>
+                <div class="message-text">¡Bienvenido al ${chats[currentChat].name}!</div>
+                <div class="message-time">Ahora</div>
+            </div>
+            <div class="message left">
+                <div class="username">Sistema</div>
+                <div class="message-text">Escribe un mensaje para comenzar</div>
+                <div class="message-time">Ahora</div>
             </div>
         `;
+        chatContainer.appendChild(welcomeDiv);
+        return;
+    }
+    
+    // Mostrar mensajes del chat actual
+    chats[currentChat].messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        const isCurrentUser = msg.user === currentUser;
         
-        chatContainer.appendChild(messageElement);
+        messageDiv.className = `message ${isCurrentUser ? 'right' : 'left'}`;
+        messageDiv.innerHTML = `
+            <div class="username">${msg.user}</div>
+            <div class="message-text">${msg.text}</div>
+            <div class="message-time">${formatTime(msg.time)}</div>
+        `;
+        
+        chatContainer.appendChild(messageDiv);
     });
     
     // Scroll al final
     chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function renderChatList() {
+    chatList.innerHTML = '';
+    
+    Object.keys(chats).forEach(chatId => {
+        const chat = chats[chatId];
+        const lastMessage = chat.messages[chat.messages.length - 1];
+        
+        const chatItem = document.createElement('div');
+        chatItem.className = `chat-item ${chatId === currentChat ? 'active' : ''}`;
+        chatItem.dataset.chat = chatId;
+        chatItem.innerHTML = `
+            <div class="chat-name">${chat.name}</div>
+            <div class="chat-preview">${lastMessage ? `${lastMessage.user}: ${lastMessage.text}` : 'No hay mensajes'}</div>
+        `;
+        
+        chatItem.addEventListener('click', () => switchChat(chatId));
+        chatList.appendChild(chatItem);
+    });
+}
+
+function switchChat(chatId) {
+    currentChat = chatId;
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.chat === chatId);
+    });
+    renderMessages();
 }
 
 async function sendMessage() {
@@ -113,18 +218,26 @@ async function sendMessage() {
     if (!text || !currentUser) return;
     
     const newMessage = {
+        id: Date.now().toString(),
         user: currentUser,
         text: text,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        chatId: currentChat,
+        chatName: chats[currentChat].name
     };
     
-    // Agregar a la interfaz inmediatamente
-    messages.push(newMessage);
+    // Agregar al chat local
+    if (!chats[currentChat]) {
+        chats[currentChat] = {
+            name: `Chat ${currentChat}`,
+            messages: []
+        };
+    }
+    
+    chats[currentChat].messages.push(newMessage);
+    saveChatsToLocalStorage();
     renderMessages();
     messageInput.value = '';
-    
-    // Guardar en caché local
-    localStorage.setItem('cachedMessages', JSON.stringify(messages));
     
     // Intentar enviar a la API si hay conexión
     if (isOnline) {
@@ -137,8 +250,8 @@ async function sendMessage() {
                 body: JSON.stringify(newMessage)
             });
             
-            // Actualizar la lista completa después de enviar
-            await loadMessages();
+            // Actualizar la lista de chats
+            renderChatList();
         } catch (error) {
             console.error('Error al enviar mensaje:', error);
             showNotification('Mensaje guardado localmente. Se enviará cuando haya conexión');
@@ -148,8 +261,49 @@ async function sendMessage() {
     }
 }
 
-function handleConnectionChange() {
+function addSystemMessage(text) {
+    if (!chats[currentChat]) return;
+    
+    const systemMessage = {
+        id: `sys-${Date.now()}`,
+        user: 'Sistema',
+        text: text,
+        time: new Date().toISOString()
+    };
+    
+    chats[currentChat].messages.push(systemMessage);
+    saveChatsToLocalStorage();
+    renderMessages();
+}
+
+function createNewChat() {
+    const chatName = newChatName.value.trim();
+    if (!chatName) return;
+    
+    const chatId = `chat-${Date.now()}`;
+    chats[chatId] = {
+        name: chatName,
+        messages: []
+    };
+    
+    saveChatsToLocalStorage();
+    renderChatList();
+    newChatName.value = '';
+    newChatModal.classList.remove('active');
+    switchChat(chatId);
+    
+    // Mensaje de sistema
+    addSystemMessage(`Chat "${chatName}" creado por ${currentUser}`);
+}
+
+function toggleSidebar() {
+    chatSidebar.classList.toggle('active');
+}
+
+function updateConnectionStatus() {
     isOnline = navigator.onLine;
+    userStatus.textContent = isOnline ? 'En línea' : 'Offline';
+    
     if (isOnline) {
         showNotification('Conectado - Sincronizando mensajes...');
         loadMessages();
@@ -169,12 +323,13 @@ function showNotification(message) {
     notification.textContent = message;
     document.body.appendChild(notification);
     
-    notification.style.display = 'block';
-    
     setTimeout(() => {
-        notification.style.display = 'none';
+        notification.classList.add('show');
         setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 500);
-    }, 3000);
+            notification.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }, 10);
 }
