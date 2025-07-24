@@ -1,7 +1,7 @@
 // URLs de las APIs
 const USERS_API = 'https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/User/1';
-const CHATS_API = 'https://688172a166a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats';
-const MESSAGES_API = 'https://6878141b31d28a460e1d23cc.mockapi.io/68643bc188359a373e97e75c/UDataB/68643bc188359a373e97e75c/68643bc188359a373e97e75c/68643bc188359a373e97e75c/UserSinRed';
+const CHATS_API = 'https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats';
+const MESSAGES_API = 'https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats/2';
 
 // Variables globales
 let currentUser = null;
@@ -193,6 +193,12 @@ async function loadMessagesFromAPI() {
         const response = await fetch(MESSAGES_API);
         const apiMessages = await response.json();
         
+        // Verificar si la respuesta es un array
+        if (!Array.isArray(apiMessages)) {
+            console.error('La API de mensajes no devolvió un array:', apiMessages);
+            return;
+        }
+        
         apiMessages.forEach(msg => {
             const chatId = msg.chatId || 'general';
             
@@ -362,10 +368,7 @@ async function sendMessage() {
         text: text,
         time: new Date().toISOString(),
         chatId: currentChat,
-        chatName: chats[currentChat].name,
-        admin: chats[currentChat].admin,
-        users: chats[currentChat].users,
-        isPrivate: chats[currentChat].isPrivate
+        chatName: chats[currentChat].name
     };
     
     // Agregar mensaje localmente
@@ -396,13 +399,17 @@ async function sendMessage() {
 }
 
 async function saveMessageToAPI(message) {
-    await fetch(MESSAGES_API, {
+    const response = await fetch(MESSAGES_API, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(message)
     });
+    
+    if (!response.ok) {
+        throw new Error('Error al guardar mensaje en API');
+    }
 }
 
 function addSystemMessage(text) {
