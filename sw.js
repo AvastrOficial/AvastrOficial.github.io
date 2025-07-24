@@ -1,10 +1,12 @@
-const CACHE_NAME = 'bsz-messenger-v2';
+const CACHE_NAME = 'bsz-messenger-v3';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json'
+  '/mi-mensaje-pwa/',
+  '/mi-mensaje-pwa/index.html',
+  '/mi-mensaje-pwa/creacionchat.html',
+  '/mi-mensaje-pwa/style.css',
+  '/mi-mensaje-pwa/app.js',
+  '/mi-mensaje-pwa/chat.js',
+  '/mi-mensaje-pwa/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -39,7 +41,7 @@ self.addEventListener('fetch', (event) => {
           }
         ).catch(() => {
           if (event.request.headers.get('accept').includes('text/html')) {
-            return caches.match('/index.html');
+            return caches.match('/mi-mensaje-pwa/index.html');
           }
         });
       })
