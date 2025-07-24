@@ -1,7 +1,7 @@
 {
   "name": "Bsz Messgger",
   "short_name": "BszMsg",
-  "start_url": "/mi-mensaje-pwa/",
+  "start_url": "/mi-mensaje-pwa/index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#ff0000",
