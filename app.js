@@ -271,7 +271,10 @@ function redirectToCreateChat() {
         showNotification('Debes ingresar tu nombre primero');
         return;
     }
-    window.location.href = 'creacionchat.html';
+    
+    // Verificar si estamos en GitHub Pages (ruta relativa)
+    const basePath = window.location.hostname.includes('github.io') ? '/mi-mensaje-pwa' : '';
+    window.location.href = `${basePath}/creacionchat.html`;
 }
 
 // Funciones de renderizado
