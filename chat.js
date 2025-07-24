@@ -1,77 +1,116 @@
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos del DOM
     const chatNameInput = document.getElementById('chatName');
     const chatDescriptionInput = document.getElementById('chatDescription');
     const chatPrivacySelect = document.getElementById('chatPrivacy');
     const cancelButton = document.getElementById('cancelCreateChat');
     const confirmButton = document.getElementById('confirmCreateChat');
+    const nameError = document.getElementById('nameError');
     
-    // Obtener usuario actual del cache
+    // Obtener usuario actual
     const currentUser = localStorage.getItem('bszMessengerUser');
-    
     if (!currentUser) {
-        alert('Debes iniciar sesión primero');
-        window.location.href = 'index.html';
+        redirectToIndex();
         return;
     }
-    
-    // Cargar chats existentes para validar nombres únicos
+
+    // Cargar chats existentes
     let existingChats = [];
-    try {
-        const response = await fetch('https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats');
-        existingChats = await response.json();
-    } catch (error) {
-        console.error('Error al cargar chats:', error);
+    loadExistingChats();
+
+    // Event Listeners
+    cancelButton.addEventListener('click', redirectToIndex);
+    confirmButton.addEventListener('click', handleCreateChat);
+    chatNameInput.addEventListener('input', clearNameError);
+
+    // Funciones
+    async function loadExistingChats() {
+        try {
+            const response = await fetch('https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats');
+            if (response.ok) {
+                existingChats = await response.json();
+            }
+        } catch (error) {
+            console.error('Error loading chats:', error);
+        }
     }
-    
-    cancelButton.addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
-    
-    confirmButton.addEventListener('click', async () => {
+
+    function redirectToIndex() {
+        window.location.href = getBasePath() + '/index.html';
+    }
+
+    async function handleCreateChat() {
         const chatName = chatNameInput.value.trim();
         const description = chatDescriptionInput.value.trim();
         const isPrivate = chatPrivacySelect.value === 'private';
         
-        if (!chatName) {
-            alert('El nombre del chat es requerido');
-            return;
-        }
-        
-        // Validar nombre único
-        if (existingChats.some(chat => chat.name.toLowerCase() === chatName.toLowerCase())) {
-            alert('Ya existe un chat con ese nombre');
-            return;
-        }
-        
+        if (!validateChatName(chatName)) return;
+
         const newChat = {
-            id: `chat-${Date.now()}`,
             name: chatName,
-            description: description,
+            description,
             admin: currentUser,
-            isPrivate: isPrivate,
+            isPrivate,
             createdAt: new Date().toISOString(),
             users: [currentUser]
         };
+
+        await createNewChat(newChat);
+    }
+
+    function validateChatName(name) {
+        if (!name) {
+            showError('El nombre del chat es requerido');
+            return false;
+        }
         
+        if (existingChats.some(chat => chat.name.toLowerCase() === name.toLowerCase())) {
+            showError('Ya existe un chat con ese nombre');
+            return false;
+        }
+        
+        return true;
+    }
+
+    function showError(message) {
+        nameError.textContent = message;
+        nameError.style.display = 'block';
+    }
+
+    function clearNameError() {
+        nameError.style.display = 'none';
+    }
+
+    async function createNewChat(chatData) {
         try {
-            // Guardar en la API
+            setLoading(true);
             const response = await fetch('https://688172a166a7eb81224ae8f4.mockapi.io/Api/Bszapp/Chats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newChat)
+                body: JSON.stringify(chatData)
             });
             
             if (response.ok) {
-                // Redirigir al chat recién creado
-                window.location.href = `index.html?chat=${newChat.id}`;
+                const createdChat = await response.json();
+                window.location.href = `${getBasePath()}/index.html?chat=${createdChat.id}`;
             } else {
-                throw new Error('Error al crear chat');
+                throw new Error('Error en la respuesta del servidor');
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al crear el chat. Intenta nuevamente.');
+            console.error('Error creating chat:', error);
+            alert('Error al crear el chat. Por favor, intenta nuevamente.');
+            setLoading(false);
         }
-    });
+    }
+
+    function setLoading(loading) {
+        confirmButton.disabled = loading;
+        confirmButton.textContent = loading ? 'Creando...' : 'Crear Chat';
+    }
+
+    function getBasePath() {
+        return window.location.hostname.includes('github.io') ? '/mi-mensaje-pwa' : '';
+    }
 });
